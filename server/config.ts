@@ -73,6 +73,15 @@ export default {
       agent: new AgentConfig(Number(get('TOKEN_VERIFICATION_API_TIMEOUT_RESPONSE', 5000))),
       enabled: get('TOKEN_VERIFICATION_ENABLED', 'false') === 'true',
     },
+    componentApi: {
+      url: get('COMPONENT_API_URL', 'http://localhost:8082', requiredInProduction),
+      healthPath: '/ping',
+      timeout: {
+        response: Number(get('COMPONENT_API_TIMEOUT_RESPONSE', 2500)),
+        deadline: Number(get('COMPONENT_API_TIMEOUT_DEADLINE', 2500)),
+      },
+      agent: new AgentConfig(Number(get('COMPONENT_API_TIMEOUT_RESPONSE', 2500))),
+    },
     organisationsApi: {
       url: get('ORGANISATIONS_API_URL', 'http://localhost:8080', requiredInProduction),
       healthPath: '/health/ping',
@@ -85,6 +94,9 @@ export default {
   },
   sqs: {
     audit: auditConfig(),
+  },
+  serviceUrls: {
+    digitalPrison: get('DPS_HOME_PAGE_URL', 'http://localhost:3001', requiredInProduction),
   },
   ingressUrl: get('INGRESS_URL', 'http://localhost:3000', requiredInProduction),
   environmentName: get('ENVIRONMENT_NAME', ''),

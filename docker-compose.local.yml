@@ -36,6 +36,9 @@ services:
       - PRODUCT_ID=UNASSIGNED
       - REDIS_ENABLED=false
       - REDIS_HOST=localhost
+      # Not reachable locally, so the DPS header/footer fall back to the library's static versions
+      - COMPONENT_API_URL=http://localhost:8082
+      - DPS_HOME_PAGE_URL=http://localhost:3001
       - ENVIRONMENT_NAME=dev
       - HMPPS_AUTH_EXTERNAL_URL=http://localhost:9090/auth
       - HMPPS_AUTH_URL=http://sign-in-stub:8080/auth
