@@ -108,6 +108,7 @@ export default {
               cityCode: '25343',
               postCode: 'S1 1AA',
               serviceAddress: false,
+              active: true,
               primaryAddress: true,
               mailAddress: false,
               phoneNumbers: [],

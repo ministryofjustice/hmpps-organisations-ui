@@ -48,6 +48,7 @@ const organisation: OrganisationV2Details = {
       postCode: 'S1 1AA',
       countryCode: 'ENG',
       serviceAddress: false,
+      active: true,
       primaryAddress: true,
       mailAddress: false,
       phoneNumbers: [{ phoneType: 'BUS', phoneNumber: '0114 111 2222', extNumber: null }],

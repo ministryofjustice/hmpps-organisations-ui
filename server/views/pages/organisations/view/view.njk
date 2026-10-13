@@ -56,6 +56,7 @@
         {% if address.serviceAddress %}{% set flags = (flags.push("Service"), flags) %}{% endif %}
         {% set rows = [{ key: { text: "Address" }, value: { text: address.lines or "Not provided" } }] %}
         {% if address.type %}{% set rows = (rows.push({ key: { text: "Type" }, value: { text: address.type } }), rows) %}{% endif %}
+        {% set rows = (rows.push({ key: { text: "Status" }, value: { text: "Active" if address.active else "Inactive" } }), rows) %}
         {% if flags.length %}{% set rows = (rows.push({ key: { text: "Marked as" }, value: { text: flags | join(", ") } }), rows) %}{% endif %}
         {% if address.startDate %}{% set rows = (rows.push({ key: { text: "Start date" }, value: { text: address.startDate | formatDate } }), rows) %}{% endif %}
         {% if address.endDate %}{% set rows = (rows.push({ key: { text: "End date" }, value: { text: address.endDate | formatDate } }), rows) %}{% endif %}

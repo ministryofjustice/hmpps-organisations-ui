@@ -45,6 +45,7 @@ describe('toCreateOrganisationRequest', () => {
         {
           noFixedAddress: false,
           serviceAddress: false,
+          active: true,
           primaryAddress: true,
           mailAddress: false,
           street: 'High St',
@@ -108,6 +109,7 @@ describe('toFormValues', () => {
           startDate: '2024-12-01',
           endDate: null,
           serviceAddress: false,
+          active: true,
           primaryAddress: true,
           mailAddress: false,
           phoneNumbers: [{ phoneType: 'BUS', phoneNumber: '0115', extNumber: null }],

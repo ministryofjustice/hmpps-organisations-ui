@@ -30,6 +30,7 @@ export type OrganisationV2AddressRequest = {
   comments?: string | null
   addressType?: string | null
   serviceAddress: boolean
+  active: boolean
   specialNeedsCode?: string | null
   primaryAddress: boolean
   mailAddress: boolean

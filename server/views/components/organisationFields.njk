@@ -145,6 +145,7 @@
       value: v.comments,
       errorMessage: e | findError(p + "[comments]")
     }) }}
+    {{ checkboxField({ prefix: p, name: "inactive", label: "This address is inactive", values: v, errors: e }) }}
     {{ checkboxField({ prefix: p, name: "serviceAddress", label: "Service address", values: v, errors: e }) }}
     {{ checkboxField({ prefix: p, name: "primaryAddress", label: "Primary address", values: v, errors: e }) }}
     {{ checkboxField({ prefix: p, name: "mailAddress", label: "Mail address", values: v, errors: e }) }}

@@ -172,6 +172,7 @@ const addressSchema = (refs: ReferenceData) =>
       comments: text(240, ERRORS.ADDRESS_COMMENTS_TOO_LONG),
       addressType: z.string({ message: ERRORS.ADDRESS_TYPE_INVALID }).optional(),
       serviceAddress: checkbox(),
+      inactive: checkbox(),
       specialNeedsCode: z.string({ message: ERRORS.SPECIAL_NEEDS_INVALID }).optional(),
       primaryAddress: checkbox(),
       mailAddress: checkbox(),
@@ -191,7 +192,7 @@ const addressSchema = (refs: ReferenceData) =>
         refs.ORG_ADDRESS_SPECIAL_NEEDS,
         ERRORS.SPECIAL_NEEDS_INVALID,
       )
-      ;(['noFixedAddress', 'serviceAddress', 'primaryAddress', 'mailAddress'] as const).forEach(name =>
+      ;(['noFixedAddress', 'serviceAddress', 'inactive', 'primaryAddress', 'mailAddress'] as const).forEach(name =>
         checkCheckbox(ctx, name, address[name]),
       )
 
@@ -228,6 +229,7 @@ const toAddress = (address: AddressIn) => ({
   comments: address.comments,
   addressType: address.addressType,
   serviceAddress: address.serviceAddress === 'true',
+  active: address.inactive !== 'true',
   specialNeedsCode: address.specialNeedsCode,
   primaryAddress: address.primaryAddress === 'true',
   mailAddress: address.mailAddress === 'true',

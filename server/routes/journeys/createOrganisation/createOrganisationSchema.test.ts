@@ -163,6 +163,13 @@ describe('createOrganisationSchema', () => {
 
   describe('addresses', () => {
     const addr = (overrides = {}) => ({ ...valid, addresses: [{ street: 'High St', ...overrides }] })
+
+    it('defaults an address to active and treats the inactive checkbox as active = false', () => {
+      const active = schema.safeParse(addr())
+      const inactive = schema.safeParse(addr({ inactive: 'true' }))
+      expect(active.success && active.data.addresses[0].active).toBe(true)
+      expect(inactive.success && inactive.data.addresses[0].active).toBe(false)
+    })
     it('accepts a valid address with nested phone', () => {
       const result = schema.safeParse(
         addr({
