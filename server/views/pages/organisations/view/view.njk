@@ -1,0 +1,78 @@
+{% extends "partials/layout.njk" %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+
+{% set pageTitle = organisation.organisationName + " - Organisations" %}
+
+{% macro lines(items) %}{% for item in items %}{{ item }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% endmacro %}
+
+{% block pageContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l" data-qa="caption">Organisation {{ organisation.organisationId }}</span>
+      <h1 class="govuk-heading-l" data-qa="main-heading">{{ organisation.organisationName }}</h1>
+
+      {% if user | hasPermission(PERMISSION.MANAGE) %}
+        <div class="govuk-button-group">
+          {{ govukButton({ text: "Update organisation", href: "/organisations/" + organisation.organisationId + "/edit", attributes: { "data-qa": "update-button" } }) }}
+          {{ govukButton({ text: "Delete organisation", href: "/organisations/" + organisation.organisationId + "/delete", classes: "govuk-button--warning", attributes: { "data-qa": "delete-button" } }) }}
+        </div>
+      {% endif %}
+
+      <h2 class="govuk-heading-m">Organisation details</h2>
+      {% set statusHtml %}
+        {{ govukTag({ text: "Active" if organisation.active else "Inactive", classes: "govuk-tag--green" if organisation.active else "govuk-tag--grey" }) }}
+        {% if organisation.deactivatedDate %} from {{ organisation.deactivatedDate | formatDate }}{% endif %}
+      {% endset %}
+      {{ govukSummaryList({
+        attributes: { "data-qa": "organisation-details" },
+        rows: [
+          { key: { text: "Organisation name" }, value: { text: organisation.organisationName } },
+          { key: { text: "Status" }, value: { html: statusHtml } },
+          { key: { text: "Organisation types" }, value: { html: lines(types) } },
+          { key: { text: "Programme number" }, value: { text: organisation.programmeNumber or "Not provided" } },
+          { key: { text: "VAT number" }, value: { text: organisation.vatNumber or "Not provided" } },
+          { key: { text: "Caseload ID" }, value: { text: organisation.caseloadId or "Not provided" } },
+          { key: { text: "Comments" }, value: { text: organisation.comments or "Not provided" } }
+        ]
+      }) }}
+
+      <h2 class="govuk-heading-m">Contact details</h2>
+      {{ govukSummaryList({
+        attributes: { "data-qa": "contact-details" },
+        rows: [
+          { key: { text: "Phone numbers" }, value: { html: lines(phones) if phones.length else "Not provided" } },
+          { key: { text: "Email addresses" }, value: { html: lines(emails) if emails.length else "Not provided" } },
+          { key: { text: "Web addresses" }, value: { html: lines(webAddresses) if webAddresses.length else "Not provided" } }
+        ]
+      }) }}
+
+      <h2 class="govuk-heading-m">Addresses</h2>
+      {% for address in addresses %}
+        {% set flags = [] %}
+        {% if address.primaryAddress %}{% set flags = (flags.push("Primary"), flags) %}{% endif %}
+        {% if address.mailAddress %}{% set flags = (flags.push("Mail"), flags) %}{% endif %}
+        {% if address.serviceAddress %}{% set flags = (flags.push("Service"), flags) %}{% endif %}
+        {% set rows = [{ key: { text: "Address" }, value: { text: address.lines or "Not provided" } }] %}
+        {% if address.type %}{% set rows = (rows.push({ key: { text: "Type" }, value: { text: address.type } }), rows) %}{% endif %}
+        {% if flags.length %}{% set rows = (rows.push({ key: { text: "Marked as" }, value: { text: flags | join(", ") } }), rows) %}{% endif %}
+        {% if address.startDate %}{% set rows = (rows.push({ key: { text: "Start date" }, value: { text: address.startDate | formatDate } }), rows) %}{% endif %}
+        {% if address.endDate %}{% set rows = (rows.push({ key: { text: "End date" }, value: { text: address.endDate | formatDate } }), rows) %}{% endif %}
+        {% if address.specialNeeds %}{% set rows = (rows.push({ key: { text: "Special needs" }, value: { text: address.specialNeeds } }), rows) %}{% endif %}
+        {% if address.contactPersonName %}{% set rows = (rows.push({ key: { text: "Contact person" }, value: { text: address.contactPersonName } }), rows) %}{% endif %}
+        {% if address.businessHours %}{% set rows = (rows.push({ key: { text: "Business hours" }, value: { text: address.businessHours } }), rows) %}{% endif %}
+        {% if address.phones.length %}{% set rows = (rows.push({ key: { text: "Phone numbers" }, value: { html: lines(address.phones) } }), rows) %}{% endif %}
+        {% if address.comments %}{% set rows = (rows.push({ key: { text: "Comments" }, value: { text: address.comments } }), rows) %}{% endif %}
+        <h3 class="govuk-heading-s">Address {{ loop.index }}</h3>
+        {{ govukSummaryList({ attributes: { "data-qa": "address-" + loop.index }, rows: rows }) }}
+      {% else %}
+        <p class="govuk-body" data-qa="no-addresses">No addresses have been added.</p>
+      {% endfor %}
+
+      <p class="govuk-body">
+        <a class="govuk-link govuk-link--no-visited-state" href="/organisations" data-qa="back-to-list-link">Back to organisations</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

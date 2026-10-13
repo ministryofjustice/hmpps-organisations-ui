@@ -103,7 +103,7 @@ Needs `hmpps-organisations-api` checked out next to this repo (or set `ORGANISAT
 docker compose -f docker-compose.local.yml up --build
 ```
 
-Open http://localhost:3000 ("View organisations" lists everything via `GET /organisation/v2`). This starts Postgres, the API (`local` profile, which needs no bearer token), the UI, and a
+Open http://localhost:3000 ("View organisations" lists everything via `GET /organisation/v2`; click an organisation to view it, then update it (`PUT /organisation/v2/{id}`) or delete it (`DELETE /organisation/v2/{id}`), both needing `ROLE_ORGANISATIONS__RW`). This starts Postgres, the API (`local` profile, which needs no bearer token), the UI, and a
 Wiremock sign-in stub (`local-stubs/`) that signs you in automatically as a user with `ROLE_ORGANISATIONS__RW`.
 Stop with `docker compose -f docker-compose.local.yml down`.
 

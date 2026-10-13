@@ -72,4 +72,49 @@ describe('OrganisationsService', () => {
     client.createOrganisation.mockRejectedValue(error)
     await expect(service.createOrganisation(form, user)).rejects.toBe(error)
   })
+
+  describe('get, update and delete', () => {
+    const existing = {
+      organisationId: 7,
+      organisationName: 'Old',
+      organisationTypes: ['OTHER'],
+      active: true,
+      phoneNumbers: [],
+      internetAddresses: [],
+      addresses: [],
+      createdBy: 'creator',
+      createdTime: '2024-01-01T10:00:00',
+    } as never
+
+    it('turns a 404 into a not found error', async () => {
+      client.getOrganisation.mockRejectedValue({ responseStatus: 404 })
+      await expect(service.getOrganisation(7, user)).rejects.toMatchObject({ status: 404 })
+    })
+
+    it('updates with the original created audit values and the user as updater', async () => {
+      client.getOrganisation.mockResolvedValue(existing)
+      client.updateOrganisation.mockResolvedValue({ organisationId: 7 } as never)
+      await service.updateOrganisation(7, form, user)
+      expect(client.updateOrganisation).toHaveBeenCalledWith(
+        7,
+        expect.objectContaining({ createdBy: 'creator', createdTime: '2024-01-01T10:00:00', updatedBy: 'user1' }),
+        'user1',
+      )
+    })
+
+    it('wraps a 400 from update', async () => {
+      client.getOrganisation.mockResolvedValue(existing)
+      client.updateOrganisation.mockRejectedValue({ responseStatus: 400 })
+      await expect(service.updateOrganisation(7, form, user)).rejects.toBeInstanceOf(OrganisationRejectedError)
+    })
+
+    it('deletes, mapping 404 to not found', async () => {
+      client.deleteOrganisation.mockResolvedValue(undefined)
+      await service.deleteOrganisation(7, user)
+      expect(client.deleteOrganisation).toHaveBeenCalledWith(7, 'user1')
+
+      client.deleteOrganisation.mockRejectedValue({ status: 404 })
+      await expect(service.deleteOrganisation(7, user)).rejects.toMatchObject({ status: 404 })
+    })
+  })
 })

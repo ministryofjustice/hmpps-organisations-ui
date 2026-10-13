@@ -87,6 +87,54 @@ export default {
       },
     }),
 
+  stubGetOrganisation: (): SuperAgentRequest =>
+    stubFor({
+      request: { method: 'GET', urlPath: `${BASE}/organisation/v2/20000001` },
+      response: {
+        status: 200,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        jsonBody: {
+          organisationId: 20000001,
+          organisationName: 'Acme Limited',
+          vatNumber: 'GB123',
+          organisationTypes: ['OTHER'],
+          active: true,
+          phoneNumbers: [{ phoneType: 'BUS', phoneNumber: '0114 496 0000' }],
+          internetAddresses: [{ type: 'EMAIL', address: 'info@acme.example' }],
+          addresses: [
+            {
+              noFixedAddress: false,
+              street: 'High Street',
+              cityCode: '25343',
+              postCode: 'S1 1AA',
+              serviceAddress: false,
+              primaryAddress: true,
+              mailAddress: false,
+              phoneNumbers: [],
+            },
+          ],
+          createdBy: 'creator',
+          createdTime: '2024-01-01T10:00:00',
+        },
+      },
+    }),
+
+  stubUpdateOrganisation: (): SuperAgentRequest =>
+    stubFor({
+      request: { method: 'PUT', urlPath: `${BASE}/organisation/v2/20000001` },
+      response: {
+        status: 200,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        jsonBody: { organisationId: 20000001, organisationName: 'Renamed Limited' },
+      },
+    }),
+
+  stubDeleteOrganisation: (): SuperAgentRequest =>
+    stubFor({
+      request: { method: 'DELETE', urlPath: `${BASE}/organisation/v2/20000001` },
+      response: { status: 204 },
+    }),
+
   stubCreateOrganisationBadRequest: (): SuperAgentRequest =>
     stubFor({
       request: { method: 'POST', urlPath: `${BASE}/organisation/v2` },

@@ -5,18 +5,20 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "components/organisationFields.njk" import textField, dateField, phoneBlock, internetAddressBlock, addressBlock, actionButton %}
 
-{% set pageTitle = "Add an organisation - Organisations" %}
+{% set isEdit = mode == "edit" %}
+{% set submitAction = "save" if isEdit else "create" %}
+{% set pageTitle = ("Update organisation - Organisations" if isEdit else "Add an organisation - Organisations") %}
 
 {% block pageContent %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l" data-qa="caption">Organisations</span>
-      <h1 class="govuk-heading-l" data-qa="main-heading">Add an organisation</h1>
+      <h1 class="govuk-heading-l" data-qa="main-heading">{{ "Update organisation" if isEdit else "Add an organisation" }}</h1>
 
-      <form method="POST" novalidate data-qa="create-organisation-form">
+      <form method="POST" novalidate data-qa="{{ 'edit' if isEdit else 'create' }}-organisation-form">
         <input type="hidden" name="_csrf" value="{{ csrfToken }}"/>
         {# Makes Enter submit the form rather than triggering the first Add/Remove button #}
-        <button type="submit" name="action" value="create" class="govuk-visually-hidden" tabindex="-1" aria-hidden="true"></button>
+        <button type="submit" name="action" value="{{ submitAction }}" class="govuk-visually-hidden" tabindex="-1" aria-hidden="true"></button>
 
         <h2 class="govuk-heading-m">Organisation details</h2>
         {{ textField({ name: "organisationName", label: "Organisation name", classes: "govuk-!-width-two-thirds", values: form, errors: validationErrors }) }}
@@ -103,13 +105,13 @@
 
         <div class="govuk-button-group govuk-!-margin-top-6">
           {{ govukButton({
-            text: "Create organisation",
+            text: "Save changes" if isEdit else "Create organisation",
             name: "action",
-            value: "create",
+            value: submitAction,
             preventDoubleClick: true,
-            attributes: { "data-qa": "create-organisation-button" }
+            attributes: { "data-qa": "save-organisation-button" if isEdit else "create-organisation-button" }
           }) }}
-          <a class="govuk-link govuk-link--no-visited-state" href="/organisations/create/cancel" data-qa="cancel-link">Cancel and return to homepage</a>
+          <a class="govuk-link govuk-link--no-visited-state" href="{{ '/organisations/' + organisation.organisationId + '/edit/cancel' if isEdit else '/organisations/create/cancel' }}" data-qa="cancel-link">{{ "Cancel and return to organisation" if isEdit else "Cancel and return to homepage" }}</a>
         </div>
       </form>
     </div>

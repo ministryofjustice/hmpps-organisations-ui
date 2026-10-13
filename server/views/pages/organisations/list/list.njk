@@ -35,11 +35,14 @@
         {% set rows = [] %}
         {% for org in organisations %}
           {% set address = [org.flat, org.property, org.street, org.area, org.cityDescription, org.countyDescription, org.postcode] | reject("falsy") | join(", ") %}
+          {% set nameLink %}
+            <a class="govuk-link govuk-link--no-visited-state" href="/organisations/{{ org.organisationId }}" data-qa="organisation-link-{{ org.organisationId }}">{{ org.organisationName }}</a>
+          {% endset %}
           {% set statusTag %}
             {{ govukTag({ text: "Active" if org.organisationActive else "Inactive", classes: "govuk-tag--green" if org.organisationActive else "govuk-tag--grey" }) }}
           {% endset %}
           {% set rows = (rows.push([
-            { text: org.organisationName },
+            { html: nameLink },
             { text: org.organisationId },
             { text: address },
             { text: org.businessPhoneNumber },

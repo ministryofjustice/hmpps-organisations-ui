@@ -1,3 +1,4 @@
+import createError from 'http-errors'
 import type OrganisationsApiClient from '../data/organisationsApiClient'
 import type { HmppsUser } from '../interfaces/hmppsUser'
 import type {
@@ -11,7 +12,7 @@ import type {
   CreateOrganisationForm,
   ReferenceData,
 } from '../routes/journeys/createOrganisation/createOrganisationSchema'
-import toCreateOrganisationRequest from './organisationMapper'
+import toCreateOrganisationRequest, { toUpdateOrganisationRequest } from './organisationMapper'
 import OrganisationRejectedError from './organisationRejectedError'
 import logger from '../../logger'
 
@@ -24,6 +25,9 @@ const REFERENCE_GROUPS: ReferenceCodeGroup[] = [
   'COUNTRY',
   'ORG_ADDRESS_SPECIAL_NEEDS',
 ]
+
+const statusOf = (error: unknown) =>
+  (error as { responseStatus?: number; status?: number }).responseStatus ?? (error as { status?: number }).status
 
 const CACHE_TTL_MS = 5 * 60 * 1000
 
@@ -51,12 +55,47 @@ export default class OrganisationsService {
     try {
       return await this.organisationsApiClient.createOrganisation(request, user.username)
     } catch (error) {
-      const status =
-        (error as { responseStatus?: number; status?: number }).responseStatus ?? (error as { status?: number }).status
-      if (status === 400) {
+      if (statusOf(error) === 400) {
         logger.error(error, 'Organisations API rejected the create organisation request')
         throw new OrganisationRejectedError('The organisation could not be created')
       }
+      throw error
+    }
+  }
+
+  async getOrganisation(organisationId: number, user: HmppsUser): Promise<OrganisationV2Details> {
+    try {
+      return await this.organisationsApiClient.getOrganisation(organisationId, user.username)
+    } catch (error) {
+      if (statusOf(error) === 404) throw createError(404, 'Organisation not found')
+      throw error
+    }
+  }
+
+  async updateOrganisation(
+    organisationId: number,
+    form: CreateOrganisationForm,
+    user: HmppsUser,
+  ): Promise<OrganisationV2Details> {
+    const existing = await this.getOrganisation(organisationId, user)
+    const request = toUpdateOrganisationRequest(form, existing, user.username)
+    try {
+      return await this.organisationsApiClient.updateOrganisation(organisationId, request, user.username)
+    } catch (error) {
+      if (statusOf(error) === 404) throw createError(404, 'Organisation not found')
+      if (statusOf(error) === 400) {
+        logger.error(error, 'Organisations API rejected the update organisation request')
+        throw new OrganisationRejectedError('The organisation could not be updated')
+      }
+      throw error
+    }
+  }
+
+  async deleteOrganisation(organisationId: number, user: HmppsUser): Promise<void> {
+    try {
+      await this.organisationsApiClient.deleteOrganisation(organisationId, user.username)
+    } catch (error) {
+      if (statusOf(error) === 404) throw createError(404, 'Organisation not found')
       throw error
     }
   }

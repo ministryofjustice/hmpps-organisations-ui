@@ -5,6 +5,7 @@ export declare module 'express-session' {
   interface SessionData {
     returnTo: string
     createOrganisationForm: Record<string, unknown>
+    editOrganisationForm: { organisationId: string; form: Record<string, unknown> }
     createdOrganisation: { organisationId: number; organisationName: string; active: boolean }
   }
 }

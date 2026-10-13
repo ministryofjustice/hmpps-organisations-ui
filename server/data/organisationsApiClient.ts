@@ -20,6 +20,25 @@ export default class OrganisationsApiClient extends RestClient {
     return this.post<OrganisationV2Details>({ path: '/organisation/v2', data: request }, asSystem(username))
   }
 
+  getOrganisation(organisationId: number, username: string): Promise<OrganisationV2Details> {
+    return this.get<OrganisationV2Details>({ path: `/organisation/v2/${organisationId}` }, asSystem(username))
+  }
+
+  updateOrganisation(
+    organisationId: number,
+    request: OrganisationV2CreateRequest,
+    username: string,
+  ): Promise<OrganisationV2Details> {
+    return this.put<OrganisationV2Details>(
+      { path: `/organisation/v2/${organisationId}`, data: request },
+      asSystem(username),
+    )
+  }
+
+  async deleteOrganisation(organisationId: number, username: string): Promise<void> {
+    await this.delete({ path: `/organisation/v2/${organisationId}` }, asSystem(username))
+  }
+
   getReferenceCodes(group: ReferenceCodeGroup, username: string): Promise<ReferenceCode[]> {
     return this.get<ReferenceCode[]>({ path: `/reference-codes/group/${group}` }, asSystem(username))
   }

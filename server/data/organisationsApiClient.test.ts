@@ -70,4 +70,19 @@ describe('OrganisationsApiClient', () => {
 
     await expect(client.createOrganisation(request, 'user1')).rejects.toMatchObject({ responseStatus: 400 })
   })
+
+  it('gets, updates and deletes an organisation', async () => {
+    nock(config.apis.organisationsApi.url)
+      .get('/organisation/v2/5')
+      .reply(200, { ...request, organisationId: 5 })
+      .put('/organisation/v2/5', body => body.organisationName === 'Example Limited')
+      .reply(200, { ...request, organisationId: 5 })
+      .delete('/organisation/v2/5')
+      .reply(204)
+
+    expect((await client.getOrganisation(5, 'user1')).organisationId).toBe(5)
+    expect((await client.updateOrganisation(5, request, 'user1')).organisationId).toBe(5)
+    await expect(client.deleteOrganisation(5, 'user1')).resolves.toBeUndefined()
+    expect(nock.isDone()).toBe(true)
+  })
 })
