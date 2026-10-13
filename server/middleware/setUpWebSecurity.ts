@@ -39,6 +39,7 @@ export default function setUpWebSecurity(): Router {
         },
       },
       crossOriginEmbedderPolicy: true,
+      referrerPolicy: { policy: 'same-origin' },
     }),
   )
   return router

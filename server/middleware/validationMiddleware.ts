@@ -75,6 +75,6 @@ export default function validationMiddleware(schema: z.ZodTypeAny | SchemaFactor
       res.addValidationError(key.message, key.path.reduce(pathArrayToString) as string)
     })
 
-    return res.validationFailed()
+    return res.validationFailed(req.originalUrl.split('?')[0])
   }
 }
