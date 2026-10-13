@@ -1,0 +1,16 @@
+{% extends "partials/layout.njk" %}
+
+{% set pageTitle = "Not authorised - " + applicationName %}
+
+{% block pageContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l" data-qa="main-heading">You do not have permission to view this page</h1>
+      <p class="govuk-body">
+        You need the correct role to use {{ serviceName }}. Speak to your administrator if you think you should have
+        access.
+      </p>
+      <p class="govuk-body"><a class="govuk-link govuk-link--no-visited-state" href="/">Return to the homepage</a></p>
+    </div>
+  </div>
+{% endblock %}

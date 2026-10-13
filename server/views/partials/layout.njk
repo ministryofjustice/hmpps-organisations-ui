@@ -1,16 +1,45 @@
 {% extends "govuk/template.njk" %}
+{% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "moj/components/alert/macro.njk" import mojAlert %}
 
 {% block head %}
   <link href="{{ '/assets/css/index.css' | assetMap }}" rel="stylesheet"/>
 {% endblock %}
 
-{% block pageTitle %}{{pageTitle | default(applicationName)}}{% endblock %}
+{% block pageTitle %}{% if validationErrors and validationErrors.length %}Error: {% endif %}{{ pageTitle | default(applicationName) }}{% endblock %}
 
 {% block header %}
   {% include "./header.njk" %}
 {% endblock %}
 
-{% block bodyStart %}
+{% block beforeContent %}
+  {% if backUrl %}
+    {{ govukBackLink({ text: "Back", href: backUrl, attributes: { "data-qa": "back-link" } }) }}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% if validationErrors and validationErrors.length %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: validationErrors,
+      attributes: { "data-qa": "error-summary" }
+    }) }}
+  {% endif %}
+
+  {% if successMessage %}
+    {{ mojAlert({
+      variant: "success",
+      title: successMessage.heading,
+      text: successMessage.message,
+      showTitleAsHeading: true,
+      dismissible: false,
+      attributes: { "data-qa": "success-banner" }
+    }) }}
+  {% endif %}
+
+  {% block pageContent %}{% endblock %}
 {% endblock %}
 
 {% block bodyEnd %}

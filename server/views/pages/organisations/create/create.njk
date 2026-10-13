@@ -1,0 +1,117 @@
+{% extends "partials/layout.njk" %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "components/organisationFields.njk" import textField, dateField, phoneBlock, internetAddressBlock, addressBlock, actionButton %}
+
+{% set pageTitle = "Add an organisation - Organisations" %}
+
+{% block pageContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l" data-qa="caption">Organisations</span>
+      <h1 class="govuk-heading-l" data-qa="main-heading">Add an organisation</h1>
+
+      <form method="POST" novalidate data-qa="create-organisation-form">
+        <input type="hidden" name="_csrf" value="{{ csrfToken }}"/>
+        {# Makes Enter submit the form rather than triggering the first Add/Remove button #}
+        <button type="submit" name="action" value="create" class="govuk-visually-hidden" tabindex="-1" aria-hidden="true"></button>
+
+        <h2 class="govuk-heading-m">Organisation details</h2>
+        {{ textField({ name: "organisationName", label: "Organisation name", classes: "govuk-!-width-two-thirds", values: form, errors: validationErrors }) }}
+        {{ textField({ name: "programmeNumber", label: "Programme number (optional)", classes: "govuk-input--width-20", values: form, errors: validationErrors }) }}
+        {{ textField({ name: "vatNumber", label: "VAT number (optional)", classes: "govuk-input--width-10", values: form, errors: validationErrors }) }}
+        {{ textField({ name: "caseloadId", label: "Caseload ID (optional)", classes: "govuk-input--width-5", values: form, errors: validationErrors }) }}
+        {{ govukCharacterCount({
+          id: "comments",
+          name: "comments",
+          maxlength: 240,
+          label: { text: "Comments (optional)", classes: "govuk-label--s" },
+          value: form.comments,
+          errorMessage: validationErrors | findError("comments")
+        }) }}
+
+        <h2 class="govuk-heading-m">Organisation types</h2>
+        {{ govukCheckboxes({
+          idPrefix: "organisationTypes",
+          name: "organisationTypes",
+          fieldset: { legend: { text: "Select all that apply", classes: "govuk-fieldset__legend--s" } },
+          items: refData.ORGANISATION_TYPE | refDataToOptions | checked(form.organisationTypes),
+          errorMessage: validationErrors | findError("organisationTypes")
+        }) }}
+
+        <h2 class="govuk-heading-m">Status</h2>
+        {% set deactivatedDateHtml %}
+          {{ dateField({ name: "deactivatedDate", legend: "Deactivated date (optional)", hint: "For example, 27 3 2025", values: form, errors: validationErrors }) }}
+        {% endset %}
+        {{ govukRadios({
+          idPrefix: "active",
+          name: "active",
+          fieldset: { legend: { text: "Is the organisation active?", classes: "govuk-fieldset__legend--s" } },
+          items: [
+            { value: "true", text: "Active" },
+            { value: "false", text: "Inactive", conditional: { html: deactivatedDateHtml } }
+          ] | checked(form.active),
+          errorMessage: validationErrors | findError("active")
+        }) }}
+
+        <h2 class="govuk-heading-m">Phone numbers</h2>
+        {% for phone in form.phoneNumbers %}
+          {{ phoneBlock({
+            prefix: "phoneNumbers[" + loop.index0 + "]",
+            label: "Phone number " + loop.index,
+            values: phone or {},
+            errors: validationErrors,
+            phoneTypes: refData.PHONE_TYPE | refDataToOptions,
+            removeAction: "remove-phone-" + loop.index0
+          }) }}
+        {% endfor %}
+        {% if form.phoneNumbers.length < maxItems %}
+          {{ actionButton({ text: "Add another phone number", value: "add-phone" }) }}
+        {% endif %}
+
+        <h2 class="govuk-heading-m">Email and web addresses</h2>
+        {% for item in form.internetAddresses %}
+          {{ internetAddressBlock({
+            prefix: "internetAddresses[" + loop.index0 + "]",
+            label: "Email or web address " + loop.index,
+            values: item or {},
+            errors: validationErrors,
+            removeAction: "remove-internet-address-" + loop.index0
+          }) }}
+        {% endfor %}
+        {% if form.internetAddresses.length < maxItems %}
+          {{ actionButton({ text: "Add another email or web address", value: "add-internet-address" }) }}
+        {% endif %}
+
+        <h2 class="govuk-heading-m">Addresses</h2>
+        {% for address in form.addresses %}
+          {{ addressBlock({
+            prefix: "addresses[" + loop.index0 + "]",
+            index: loop.index0,
+            label: "Address " + loop.index,
+            values: address,
+            errors: validationErrors,
+            refData: refData,
+            maxItems: maxItems
+          }) }}
+        {% endfor %}
+        {% if form.addresses.length < maxItems %}
+          {{ actionButton({ text: "Add another address", value: "add-address" }) }}
+        {% endif %}
+
+        <div class="govuk-button-group govuk-!-margin-top-6">
+          {{ govukButton({
+            text: "Create organisation",
+            name: "action",
+            value: "create",
+            preventDoubleClick: true,
+            attributes: { "data-qa": "create-organisation-button" }
+          }) }}
+          <a class="govuk-link govuk-link--no-visited-state" href="/organisations/create/cancel" data-qa="cancel-link">Cancel and return to homepage</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% macro card(params) %}
+  <div class="card card--clickable" data-qa="{{ params.dataQa }}">
+    <h2 class="govuk-heading-m card__heading">
+      <a class="govuk-link govuk-link--no-visited-state card__link" href="{{ params.href }}">{{ params.heading }}</a>
+    </h2>
+    <p class="govuk-body card__description">{{ params.description }}</p>
+  </div>
+{% endmacro %}

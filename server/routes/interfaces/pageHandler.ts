@@ -1,0 +1,12 @@
+import { NextFunction, Request, Response } from 'express'
+import z from 'zod'
+import type { Page } from '..'
+import { SchemaFactory } from '../../middleware/validationMiddleware'
+
+export interface PageHandler {
+  PAGE_NAME: Page
+  GET(req: Request, res: Response, next?: NextFunction): Promise<void>
+  POST?(req: Request, res: Response, next?: NextFunction): Promise<void>
+  QUERY?: z.ZodTypeAny | SchemaFactory
+  BODY?: z.ZodTypeAny | SchemaFactory
+}

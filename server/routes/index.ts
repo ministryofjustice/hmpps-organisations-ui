@@ -1,35 +1,29 @@
 import { Router } from 'express'
 
 import type { Services } from '../services'
-import auditSearchRequest from '../middleware/auditSearchRequest'
+import { populateUserPermissions } from '../middleware/populateUserPermissions'
+import { requirePermissions } from '../middleware/requirePermissions'
+import { Permission } from '../interfaces/hmppsUser'
+import createOrganisationRoutes from './journeys/createOrganisation'
 
 export enum Page {
-  EXAMPLE_PAGE = 'EXAMPLE_PAGE',
-  SEARCH_OFFENDERS = 'SEARCH_OFFENDERS',
+  HOME_PAGE = 'HOME_PAGE',
+  CREATE_ORGANISATION_PAGE = 'CREATE_ORGANISATION_PAGE',
+  CREATE_ORGANISATION_CONFIRMATION_PAGE = 'CREATE_ORGANISATION_CONFIRMATION_PAGE',
 }
 
 export default function routes(services: Services): Router {
-  const { auditService, exampleService } = services
+  const { auditService } = services
   const router = Router()
 
-  router.get('/', async (req, res, _next) => {
-    await auditService.logPageView(Page.EXAMPLE_PAGE, {
-      who: res.locals.user.username,
-      correlationId: req.id,
-    })
+  router.use(populateUserPermissions)
 
-    const currentTime = await exampleService.getCurrentTime()
-    return res.render('pages/index', { currentTime })
+  router.get('/', requirePermissions('ORGANISATIONS', Permission.DEFAULT), async (req, res) => {
+    await auditService.logPageView(Page.HOME_PAGE, { who: res.locals.user.username, correlationId: req.id })
+    res.render('pages/index')
   })
 
-  // Example of an audited route.
-  router.post(
-    '/perform-search',
-    auditSearchRequest({ services, page: Page.SEARCH_OFFENDERS }),
-    async (_req, res, _next) => {
-      return res.redirect('/')
-    },
-  )
+  router.use('/organisations', createOrganisationRoutes(services))
 
   return router
 }

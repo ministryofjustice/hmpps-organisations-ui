@@ -1,5 +1,6 @@
 import express, { Express } from 'express'
 import { NotFound } from 'http-errors'
+import flash from 'connect-flash'
 import { AuditService } from '@ministryofjustice/hmpps-audit-client'
 
 import routes from '../index'
@@ -8,6 +9,7 @@ import errorHandler from '../../errorHandler'
 import type { Services } from '../../services'
 import { HmppsUser } from '../../interfaces/hmppsUser'
 import setUpWebSession from '../../middleware/setUpWebSession'
+import setUpFlash from '../../middleware/setUpFlash'
 import type { ApplicationInfo } from '../../applicationInfo'
 
 jest.mock('@ministryofjustice/hmpps-audit-client')
@@ -21,8 +23,10 @@ export const user: HmppsUser = {
   displayName: 'First Last',
   authSource: 'nomis',
   staffId: 1234,
-  userRoles: [],
+  userRoles: ['ORGANISATIONS__RW'],
 }
+
+export const viewOnlyUser: HmppsUser = { ...user, userRoles: ['ORGANISATIONS__R'] }
 
 const applicationInfo: ApplicationInfo = {
   applicationName: 'hmpps-organisations-ui',
@@ -33,8 +37,6 @@ const applicationInfo: ApplicationInfo = {
   branchName: 'main',
 }
 
-export const flashProvider = jest.fn()
-
 function appSetup(services: Partial<Services>, production: boolean, userSupplier: () => HmppsUser): Express {
   const app = express()
 
@@ -42,9 +44,9 @@ function appSetup(services: Partial<Services>, production: boolean, userSupplier
 
   nunjucksSetup(app)
   app.use(setUpWebSession())
+  app.use(flash())
   app.use((req, res, next) => {
     req.user = userSupplier() as Express.User
-    req.flash = flashProvider
     res.locals = {
       user: { ...req.user } as HmppsUser,
       cspNonce: '',
@@ -62,6 +64,7 @@ function appSetup(services: Partial<Services>, production: boolean, userSupplier
   })
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
+  app.use(setUpFlash())
   app.use(routes({ applicationInfo, ...services } as Services))
   app.use((_req, _res, next) => next(new NotFound()))
   app.use(errorHandler(production))

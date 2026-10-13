@@ -9,7 +9,7 @@ generic-service:
     INGRESS_URL: "https://organisations-ui.hmpps.service.justice.gov.uk"
     HMPPS_AUTH_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
     TOKEN_VERIFICATION_API_URL: "https://token-verification-api.prison.service.justice.gov.uk"
-    EXAMPLE_API_URL: 'https://template-kotlin.hmpps.service.justice.gov.uk'
+    ORGANISATIONS_API_URL: 'https://organisations-api.hmpps.service.justice.gov.uk'
 
   allowlist:
     # Configure groups as appropriate to give the minimum ingress access required:

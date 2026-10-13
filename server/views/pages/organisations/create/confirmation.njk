@@ -1,0 +1,35 @@
+{% extends "partials/layout.njk" %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% set pageTitle = "Organisation created - Organisations" %}
+
+{% block pageContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {{ govukPanel({
+        titleText: "Organisation created",
+        text: created.organisationName if created else "Organisation " + organisationId,
+        attributes: { "data-qa": "confirmation-panel" }
+      }) }}
+
+      {% if created %}
+        {{ govukSummaryList({
+          attributes: { "data-qa": "confirmation-summary" },
+          rows: [
+            { key: { text: "Organisation ID" }, value: { text: created.organisationId } },
+            { key: { text: "Organisation name" }, value: { text: created.organisationName } },
+            { key: { text: "Status" }, value: { text: "Active" if created.active else "Inactive" } }
+          ]
+        }) }}
+      {% endif %}
+
+      <p class="govuk-body">
+        <a class="govuk-link govuk-link--no-visited-state" href="/organisations/create" data-qa="add-another-link">Add another organisation</a>
+      </p>
+      <p class="govuk-body">
+        <a class="govuk-link govuk-link--no-visited-state" href="/" data-qa="homepage-link">Return to the homepage</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

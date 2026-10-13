@@ -82,6 +82,29 @@ local development.
 Most APIs don't have images with cached data that you can run with docker: setting up realistic stubbed data in sync
 across a variety of services is very difficult.
 
+### HMPPS Organisations API
+
+The "Add an organisation" page calls `POST /organisation/v2` and `GET /reference-codes/group/{group}` on
+`hmpps-organisations-api` using client credentials. Configure it with:
+
+- `ORGANISATIONS_API_URL` (default `http://localhost:8080`)
+- `ORGANISATIONS_API_TIMEOUT_RESPONSE` / `ORGANISATIONS_API_TIMEOUT_DEADLINE` (ms)
+
+Users need `ROLE_ORGANISATIONS__RW` to add organisations and `ROLE_ORGANISATIONS__R` to see the homepage.
+The API types in `server/@types/organisationsApi/types.ts` are hand-written until v2 is merged; then regenerate them
+with `generate-organisations-api-types.sh`.
+
+#### Running against Wiremock
+
+```
+docker compose -f docker-compose-test.yml up -d
+npm run build
+PORT=3007 NO_HTTPS=true ENVIRONMENT_NAME=dev TOKEN_VERIFICATION_ENABLED=true \
+  HMPPS_AUTH_URL=http://localhost:9091/auth TOKEN_VERIFICATION_API_URL=http://localhost:9091/verification \
+  ORGANISATIONS_API_URL=http://localhost:9091/organisations-api INGRESS_URL=http://localhost:3007 npm start
+npm run int-test
+```
+
 ### REDIS
 
 When deployed to an environment with multiple pods we run applications with an instance of REDIS/Elasticache to provide

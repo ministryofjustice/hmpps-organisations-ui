@@ -4,6 +4,9 @@ import nunjucks from 'nunjucks'
 import express from 'express'
 import fs from 'fs'
 import { initialiseName } from './utils'
+import { checked, findError, formatDate, prependEmptyOption, refDataToOptions, selected } from './viewFilters'
+import { hasPermissionFilter } from '../middleware/requirePermissions'
+import { Permission } from '../interfaces/hmppsUser'
 import config from '../config'
 import logger from '../../logger'
 
@@ -39,5 +42,13 @@ export default function nunjucksSetup(app: express.Express): void {
   )
 
   njkEnv.addFilter('initialiseName', initialiseName)
+  njkEnv.addGlobal('PERMISSION', Permission)
+  njkEnv.addFilter('findError', findError)
+  njkEnv.addFilter('refDataToOptions', refDataToOptions)
+  njkEnv.addFilter('prependEmptyOption', prependEmptyOption)
+  njkEnv.addFilter('selected', selected)
+  njkEnv.addFilter('checked', checked)
+  njkEnv.addFilter('formatDate', formatDate)
+  njkEnv.addFilter('hasPermission', hasPermissionFilter)
   njkEnv.addFilter('assetMap', (url: string) => assetManifest[url] || url)
 }

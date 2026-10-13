@@ -1,0 +1,169 @@
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{#- Field ids and names are identical qs/Zod paths, e.g. addresses[0][phoneNumbers][1][extNumber] -#}
+{% macro fieldId(prefix, name) %}{{ (prefix + "[" + name + "]") if prefix else name }}{% endmacro %}
+
+{% macro textField(params) %}
+  {% set id %}{{ fieldId(params.prefix, params.name) }}{% endset %}
+  {{ govukInput({
+    id: id,
+    name: id,
+    label: { text: params.label, classes: params.labelClasses or "govuk-label--s" },
+    hint: { text: params.hint } if params.hint,
+    classes: params.classes,
+    value: params.values[params.name],
+    spellcheck: false,
+    inputmode: params.inputmode,
+    errorMessage: params.errors | findError(id),
+    attributes: { "data-qa": id | replace("[", "-") | replace("]", "") }
+  }) }}
+{% endmacro %}
+
+{% macro selectField(params) %}
+  {% set id %}{{ fieldId(params.prefix, params.name) }}{% endset %}
+  {{ govukSelect({
+    id: id,
+    name: id,
+    label: { text: params.label, classes: "govuk-label--s" },
+    items: params.items | prependEmptyOption("Select") | selected(params.values[params.name]),
+    errorMessage: params.errors | findError(id),
+    attributes: { "data-qa": id | replace("[", "-") | replace("]", "") }
+  }) }}
+{% endmacro %}
+
+{% macro checkboxField(params) %}
+  {% set id %}{{ fieldId(params.prefix, params.name) }}{% endset %}
+  {{ govukCheckboxes({
+    idPrefix: id,
+    name: id,
+    classes: "govuk-checkboxes--small",
+    items: [{ value: "true", text: params.label, checked: params.values[params.name] == "true" }],
+    errorMessage: params.errors | findError(id)
+  }) }}
+{% endmacro %}
+
+{% macro dateField(params) %}
+  {% set id %}{{ fieldId(params.prefix, params.name) }}{% endset %}
+  {% set error = params.errors | findError(id + "-day") %}
+  {% set errorClass = " govuk-input--error" if error else "" %}
+  {{ govukDateInput({
+    id: id,
+    fieldset: { legend: { text: params.legend, classes: "govuk-fieldset__legend--s" } },
+    hint: { text: params.hint },
+    errorMessage: error,
+    items: [
+      { id: id + "-day", name: id + "-day", label: "Day", classes: "govuk-input--width-2" + errorClass, value: params.values[params.name + "-day"] },
+      { id: id + "-month", name: id + "-month", label: "Month", classes: "govuk-input--width-2" + errorClass, value: params.values[params.name + "-month"] },
+      { id: id + "-year", name: id + "-year", label: "Year", classes: "govuk-input--width-4" + errorClass, value: params.values[params.name + "-year"] }
+    ]
+  }) }}
+{% endmacro %}
+
+{% macro actionButton(params) %}
+  {{ govukButton({
+    text: params.text,
+    html: params.text + '<span class="govuk-visually-hidden"> ' + params.context + "</span>" if params.context,
+    name: "action",
+    value: params.value,
+    classes: "govuk-button--secondary govuk-!-margin-bottom-3",
+    type: "submit",
+    attributes: { "data-qa": params.value }
+  }) }}
+{% endmacro %}
+
+{% macro phoneBlock(params) %}
+  {% set label = params.label %}
+  {% call govukFieldset({
+    legend: { text: label, classes: "govuk-fieldset__legend--s" },
+    attributes: { "data-qa": "phone-block" }
+  }) %}
+    {{ selectField({ prefix: params.prefix, name: "phoneType", label: "Phone type", items: params.phoneTypes, values: params.values, errors: params.errors }) }}
+    {{ textField({ prefix: params.prefix, name: "phoneNumber", label: "Phone number", classes: "govuk-input--width-20", inputmode: "tel", values: params.values, errors: params.errors }) }}
+    {{ textField({ prefix: params.prefix, name: "extNumber", label: "Extension (optional)", classes: "govuk-input--width-5", inputmode: "numeric", values: params.values, errors: params.errors }) }}
+    {{ actionButton({ text: "Remove", context: label | lower, value: params.removeAction }) }}
+  {% endcall %}
+{% endmacro %}
+
+{% macro internetAddressBlock(params) %}
+  {% set id %}{{ fieldId(params.prefix, "type") }}{% endset %}
+  {% call govukFieldset({
+    legend: { text: params.label, classes: "govuk-fieldset__legend--s" },
+    attributes: { "data-qa": "internet-address-block" }
+  }) %}
+    {{ govukRadios({
+      idPrefix: id,
+      name: id,
+      classes: "govuk-radios--small",
+      fieldset: { legend: { text: "Type", classes: "govuk-fieldset__legend--s" } },
+      items: [
+        { value: "EMAIL", text: "Email address" },
+        { value: "WEB", text: "Web address" }
+      ] | checked(params.values.type),
+      errorMessage: params.errors | findError(id)
+    }) }}
+    {{ textField({ prefix: params.prefix, name: "address", label: "Email or web address", classes: "govuk-!-width-two-thirds", values: params.values, errors: params.errors }) }}
+    {{ actionButton({ text: "Remove", context: params.label | lower, value: params.removeAction }) }}
+  {% endcall %}
+{% endmacro %}
+
+{% macro addressBlock(params) %}
+  {% set p = params.prefix %}
+  {% set v = params.values %}
+  {% set e = params.errors %}
+  {% set ref = params.refData %}
+  {% call govukFieldset({
+    legend: { text: params.label, classes: "govuk-fieldset__legend--m", isPageHeading: false },
+    attributes: { "data-qa": "address-block" }
+  }) %}
+    {{ checkboxField({ prefix: p, name: "noFixedAddress", label: "No fixed address", values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "flat", label: "Flat (optional)", classes: "govuk-input--width-10", values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "property", label: "Property (optional)", classes: "govuk-!-width-two-thirds", values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "street", label: "Street (optional)", classes: "govuk-!-width-two-thirds", values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "area", label: "Area (optional)", classes: "govuk-!-width-two-thirds", values: v, errors: e }) }}
+    {{ selectField({ prefix: p, name: "cityCode", label: "Town or city (optional)", items: ref.CITY | refDataToOptions, values: v, errors: e }) }}
+    {{ selectField({ prefix: p, name: "countyCode", label: "County (optional)", items: ref.COUNTY | refDataToOptions, values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "postCode", label: "Postcode (optional)", classes: "govuk-input--width-10", values: v, errors: e }) }}
+    {{ selectField({ prefix: p, name: "countryCode", label: "Country (optional)", items: ref.COUNTRY | refDataToOptions, values: v, errors: e }) }}
+    {{ dateField({ prefix: p, name: "startDate", legend: "Start date (optional)", hint: "For example, 27 3 2025", values: v, errors: e }) }}
+    {{ dateField({ prefix: p, name: "endDate", legend: "End date (optional)", hint: "For example, 27 3 2025", values: v, errors: e }) }}
+    {{ selectField({ prefix: p, name: "addressType", label: "Address type (optional)", items: ref.ADDRESS_TYPE | refDataToOptions, values: v, errors: e }) }}
+    {{ selectField({ prefix: p, name: "specialNeedsCode", label: "Special needs (optional)", items: ref.ORG_ADDRESS_SPECIAL_NEEDS | refDataToOptions, values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "contactPersonName", label: "Contact person name (optional)", classes: "govuk-!-width-two-thirds", values: v, errors: e }) }}
+    {{ textField({ prefix: p, name: "businessHours", label: "Business hours (optional)", classes: "govuk-!-width-two-thirds", values: v, errors: e }) }}
+    {{ govukCharacterCount({
+      id: p + "[comments]",
+      name: p + "[comments]",
+      maxlength: 240,
+      label: { text: "Address comments (optional)", classes: "govuk-label--s" },
+      value: v.comments,
+      errorMessage: e | findError(p + "[comments]")
+    }) }}
+    {{ checkboxField({ prefix: p, name: "serviceAddress", label: "Service address", values: v, errors: e }) }}
+    {{ checkboxField({ prefix: p, name: "primaryAddress", label: "Primary address", values: v, errors: e }) }}
+    {{ checkboxField({ prefix: p, name: "mailAddress", label: "Mail address", values: v, errors: e }) }}
+
+    <h3 class="govuk-heading-s">Address phone numbers</h3>
+    {% for phone in v.phoneNumbers %}
+      {{ phoneBlock({
+        prefix: p + "[phoneNumbers][" + loop.index0 + "]",
+        label: params.label + " phone number " + loop.index,
+        values: phone or {},
+        errors: e,
+        phoneTypes: ref.PHONE_TYPE | refDataToOptions,
+        removeAction: "remove-address-" + params.index + "-phone-" + loop.index0
+      }) }}
+    {% endfor %}
+    {% if v.phoneNumbers.length < params.maxItems %}
+      {{ actionButton({ text: "Add another phone number", context: "to " + (params.label | lower), value: "add-address-" + params.index + "-phone" }) }}
+    {% endif %}
+
+    {{ actionButton({ text: "Remove", context: params.label | lower, value: "remove-address-" + params.index }) }}
+  {% endcall %}
+{% endmacro %}

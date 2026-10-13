@@ -4,6 +4,20 @@ export declare module 'express-session' {
   // Declare that the session will potentially contain these additional fields
   interface SessionData {
     returnTo: string
+    createOrganisationForm: Record<string, unknown>
+    createdOrganisation: { organisationId: number; organisationName: string; active: boolean }
+  }
+}
+
+declare module 'express-serve-static-core' {
+  interface Request {
+    rawBody: object
+  }
+
+  interface Response {
+    addSuccessMessage(heading: string, message?: string): void
+    addValidationError(message: string, field?: string): void
+    validationFailed(redirectUrl?: string): void
   }
 }
 
@@ -32,6 +46,7 @@ export declare global {
       appInsightsConnectionString?: string
       appInsightsApplicationName?: string
       buildNumber?: string
+      formResponses?: Record<string, unknown>
     }
   }
 }
