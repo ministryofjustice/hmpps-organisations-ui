@@ -50,6 +50,21 @@ describe('OrganisationsApiClient', () => {
     expect(await client.getReferenceCodes('PHONE_TYPE', 'user1')).toEqual(codes)
   })
 
+  it('lists organisations with paging and an optional name filter', async () => {
+    const page = { content: [], page: { size: 20, number: 1, totalElements: 0, totalPages: 0 } }
+    nock(config.apis.organisationsApi.url)
+      .get('/organisation/v2')
+      .query({ name: 'acme', page: '1', size: '20', sort: 'organisationName,asc' })
+      .reply(200, page)
+    nock(config.apis.organisationsApi.url)
+      .get('/organisation/v2')
+      .query({ page: '0', size: '20', sort: 'organisationName,asc' })
+      .reply(200, page)
+
+    expect(await client.listOrganisations('acme', 1, 20, 'user1')).toEqual(page)
+    expect(await client.listOrganisations(undefined, 0, 20, 'user1')).toEqual(page)
+  })
+
   it('rejects on a 400', async () => {
     nock(config.apis.organisationsApi.url).post('/organisation/v2').reply(400, { status: 400, userMessage: 'bad' })
 

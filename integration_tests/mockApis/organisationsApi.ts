@@ -63,6 +63,30 @@ export default {
       },
     }),
 
+  stubListOrganisations: (): SuperAgentRequest =>
+    stubFor({
+      request: { method: 'GET', urlPath: `${BASE}/organisation/v2` },
+      response: {
+        status: 200,
+        headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+        jsonBody: {
+          content: [
+            {
+              organisationId: 20000001,
+              organisationName: 'Acme Limited',
+              organisationActive: true,
+              street: 'High Street',
+              cityDescription: 'Sheffield',
+              postcode: 'S1 1AA',
+              businessPhoneNumber: '0114 496 0000',
+            },
+            { organisationId: 20000002, organisationName: 'Beta Ltd', organisationActive: false },
+          ],
+          page: { size: 20, number: 0, totalElements: 2, totalPages: 1 },
+        },
+      },
+    }),
+
   stubCreateOrganisationBadRequest: (): SuperAgentRequest =>
     stubFor({
       request: { method: 'POST', urlPath: `${BASE}/organisation/v2` },

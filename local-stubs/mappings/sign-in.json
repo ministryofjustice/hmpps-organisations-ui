@@ -1,0 +1,54 @@
+{
+  "mappings": [
+    {
+      "request": { "method": "GET", "urlPath": "/auth/oauth/authorize" },
+      "response": {
+        "status": 302,
+        "headers": {
+          "Location": "{{request.query.redirect_uri}}?code=local-code&state={{request.query.state}}"
+        },
+        "transformers": ["response-templating"]
+      }
+    },
+    {
+      "request": { "method": "POST", "urlPath": "/auth/oauth/token" },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json;charset=UTF-8" },
+        "jsonBody": {
+          "access_token": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiTG9jYWwgVXNlciIsInVzZXJfbmFtZSI6IlVTRVIxIiwic2NvcGUiOlsicmVhZCIsIndyaXRlIl0sImF1dGhfc291cmNlIjoibm9taXMiLCJhdXRob3JpdGllcyI6WyJST0xFX09SR0FOSVNBVElPTlNfX1JXIl0sImp0aSI6ImxvY2FsLWRldi1qdGkiLCJjbGllbnRfaWQiOiJjbGllbnRpZCIsImV4cCI6NDEwMjQ0NDgwMH0.c2ln",
+          "token_type": "bearer",
+          "auth_source": "nomis",
+          "user_name": "USER1",
+          "expires_in": 3599,
+          "scope": "read",
+          "internalUser": true
+        }
+      }
+    },
+    {
+      "request": { "method": "GET", "urlPattern": "/auth/sign-out.*" },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "text/html" },
+        "body": "<html lang=\"en\"><body>Signed out of the local sign-in stub<h1>Sign in</h1><p><a href=\"http://localhost:3000\">Sign in again</a></p></body></html>"
+      }
+    },
+    {
+      "request": { "method": "GET", "urlPattern": "/auth/account-details.*" },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "text/html" },
+        "body": "<html><body><h1>Your account details</h1></body></html>"
+      }
+    },
+    {
+      "request": { "method": "GET", "urlPattern": "/(auth|verification)/health/ping" },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "status": "UP" }
+      }
+    }
+  ]
+}

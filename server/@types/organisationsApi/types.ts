@@ -71,3 +71,27 @@ export type ReferenceCode = {
   displayOrder: number
   isActive: boolean
 }
+
+export type OrganisationSummary = {
+  organisationId: number
+  organisationName: string
+  organisationActive: boolean
+  flat?: string | null
+  property?: string | null
+  street?: string | null
+  area?: string | null
+  cityCode?: string | null
+  cityDescription?: string | null
+  countyCode?: string | null
+  countyDescription?: string | null
+  postcode?: string | null
+  countryCode?: string | null
+  countryDescription?: string | null
+  businessPhoneNumber?: string | null
+  businessPhoneNumberExtension?: string | null
+}
+
+export type PagedModel<T> = {
+  content: T[]
+  page: { size: number; number: number; totalElements: number; totalPages: number }
+}

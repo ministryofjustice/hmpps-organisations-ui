@@ -94,6 +94,19 @@ Users need `ROLE_ORGANISATIONS__RW` to add organisations and `ROLE_ORGANISATIONS
 The API types in `server/@types/organisationsApi/types.ts` are hand-written until v2 is merged; then regenerate them
 with `generate-organisations-api-types.sh`.
 
+#### Running UI + real API + database with Docker Compose
+
+Needs `hmpps-organisations-api` checked out next to this repo (or set `ORGANISATIONS_API_PATH`) on the branch that has
+`POST /organisation/v2`.
+
+```
+docker compose -f docker-compose.local.yml up --build
+```
+
+Open http://localhost:3000 ("View organisations" lists everything via `GET /organisation/v2`). This starts Postgres, the API (`local` profile, which needs no bearer token), the UI, and a
+Wiremock sign-in stub (`local-stubs/`) that signs you in automatically as a user with `ROLE_ORGANISATIONS__RW`.
+Stop with `docker compose -f docker-compose.local.yml down`.
+
 #### Running against Wiremock
 
 ```

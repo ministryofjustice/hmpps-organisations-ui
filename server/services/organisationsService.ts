@@ -1,6 +1,12 @@
 import type OrganisationsApiClient from '../data/organisationsApiClient'
 import type { HmppsUser } from '../interfaces/hmppsUser'
-import type { OrganisationV2Details, ReferenceCode, ReferenceCodeGroup } from '../@types/organisationsApi/types'
+import type {
+  OrganisationSummary,
+  OrganisationV2Details,
+  PagedModel,
+  ReferenceCode,
+  ReferenceCodeGroup,
+} from '../@types/organisationsApi/types'
 import type {
   CreateOrganisationForm,
   ReferenceData,
@@ -53,5 +59,14 @@ export default class OrganisationsService {
       }
       throw error
     }
+  }
+
+  listOrganisations(
+    term: string | undefined,
+    page: number,
+    size: number,
+    user: HmppsUser,
+  ): Promise<PagedModel<OrganisationSummary>> {
+    return this.organisationsApiClient.listOrganisations(term || undefined, page, size, user.username)
   }
 }

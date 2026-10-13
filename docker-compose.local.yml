@@ -1,0 +1,51 @@
+# Runs the UI together with the real hmpps-organisations-api and its Postgres database.
+#   docker compose -f docker-compose.local.yml up --build
+# The API's own compose file is included from the sibling checkout (local profile: no bearer token needed).
+# HMPPS Auth is replaced by a small Wiremock stub (local-stubs/) that signs you in as a user with ROLE_ORGANISATIONS__RW.
+include:
+  - path: ${ORGANISATIONS_API_PATH:-../hmpps-organisations-api}/docker-compose.yml
+
+services:
+  sign-in-stub:
+    image: wiremock/wiremock
+    command: --global-response-templating
+    container_name: organisations-sign-in-stub
+    networks:
+      - hmpps
+    ports:
+      - "9090:8080"
+    volumes:
+      - ./local-stubs:/home/wiremock
+
+  app:
+    build:
+      context: .
+      args:
+        BUILD_NUMBER: "1.0.0"
+        GIT_REF: local
+        GIT_BRANCH: local
+    container_name: organisations-ui
+    depends_on:
+      - api
+      - sign-in-stub
+    networks:
+      - hmpps
+    ports:
+      - "3000:3000"
+    environment:
+      - PRODUCT_ID=UNASSIGNED
+      - REDIS_ENABLED=false
+      - REDIS_HOST=localhost
+      - ENVIRONMENT_NAME=dev
+      - HMPPS_AUTH_EXTERNAL_URL=http://localhost:9090/auth
+      - HMPPS_AUTH_URL=http://sign-in-stub:8080/auth
+      - TOKEN_VERIFICATION_API_URL=http://sign-in-stub:8080/verification
+      - TOKEN_VERIFICATION_ENABLED=false
+      - ORGANISATIONS_API_URL=http://api:8080
+      - AUTH_CODE_CLIENT_ID=clientid
+      - AUTH_CODE_CLIENT_SECRET=clientsecret
+      - CLIENT_CREDS_CLIENT_ID=clientid
+      - CLIENT_CREDS_CLIENT_SECRET=clientsecret
+      - SESSION_SECRET=local-session-secret
+      - INGRESS_URL=http://localhost:3000
+      - NO_HTTPS=true

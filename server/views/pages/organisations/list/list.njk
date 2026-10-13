@@ -1,0 +1,74 @@
+{% extends "partials/layout.njk" %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/pagination/macro.njk" import govukPagination %}
+
+{% set pageTitle = "Organisations list - " + applicationName %}
+{% set backUrl = "/" %}
+
+{% block pageContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <span class="govuk-caption-l" data-qa="caption">Organisations</span>
+      <h1 class="govuk-heading-l" data-qa="main-heading">View organisations</h1>
+
+      <form method="GET" action="/organisations" role="search" data-qa="search-form">
+        {{ govukInput({
+          id: "name",
+          name: "name",
+          value: name,
+          label: { text: "Organisation name", classes: "govuk-label--s" },
+          hint: { text: "Leave blank to list all organisations" },
+          classes: "govuk-input--width-20",
+          attributes: { "data-qa": "name-input", maxlength: "40" }
+        }) }}
+        {{ govukButton({ text: "Search", preventDoubleClick: true, attributes: { "data-qa": "search-button" } }) }}
+      </form>
+
+      <p class="govuk-body" data-qa="result-count">
+        {{ totalElements }} {{ "organisation" if totalElements == 1 else "organisations" }} found
+      </p>
+
+      {% if organisations.length %}
+        {% set rows = [] %}
+        {% for org in organisations %}
+          {% set address = [org.flat, org.property, org.street, org.area, org.cityDescription, org.countyDescription, org.postcode] | reject("falsy") | join(", ") %}
+          {% set statusTag %}
+            {{ govukTag({ text: "Active" if org.organisationActive else "Inactive", classes: "govuk-tag--green" if org.organisationActive else "govuk-tag--grey" }) }}
+          {% endset %}
+          {% set rows = (rows.push([
+            { text: org.organisationName },
+            { text: org.organisationId },
+            { text: address },
+            { text: org.businessPhoneNumber },
+            { html: statusTag }
+          ]), rows) %}
+        {% endfor %}
+        {{ govukTable({
+          caption: "Organisations",
+          captionClasses: "govuk-visually-hidden",
+          attributes: { "data-qa": "organisations-table" },
+          head: [
+            { text: "Name" },
+            { text: "ID" },
+            { text: "Primary address" },
+            { text: "Business phone" },
+            { text: "Status" }
+          ],
+          rows: rows
+        }) }}
+        {% if pagination %}
+          {{ govukPagination(pagination) }}
+        {% endif %}
+      {% endif %}
+
+      {% if user | hasPermission(PERMISSION.MANAGE) %}
+        <p class="govuk-body">
+          <a class="govuk-link govuk-link--no-visited-state" href="/organisations/create" data-qa="add-organisation-link">Add an organisation</a>
+        </p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

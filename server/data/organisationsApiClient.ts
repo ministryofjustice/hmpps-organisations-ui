@@ -4,7 +4,9 @@ import config from '../config'
 import logger from '../../logger'
 import type {
   OrganisationV2CreateRequest,
+  OrganisationSummary,
   OrganisationV2Details,
+  PagedModel,
   ReferenceCode,
   ReferenceCodeGroup,
 } from '../@types/organisationsApi/types'
@@ -20,5 +22,17 @@ export default class OrganisationsApiClient extends RestClient {
 
   getReferenceCodes(group: ReferenceCodeGroup, username: string): Promise<ReferenceCode[]> {
     return this.get<ReferenceCode[]>({ path: `/reference-codes/group/${group}` }, asSystem(username))
+  }
+
+  listOrganisations(
+    name: string | undefined,
+    page: number,
+    size: number,
+    username: string,
+  ): Promise<PagedModel<OrganisationSummary>> {
+    return this.get<PagedModel<OrganisationSummary>>(
+      { path: '/organisation/v2', query: { ...(name && { name }), page, size, sort: 'organisationName,asc' } },
+      asSystem(username),
+    )
   }
 }

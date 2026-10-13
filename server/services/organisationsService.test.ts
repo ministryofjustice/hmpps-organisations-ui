@@ -59,6 +59,14 @@ describe('OrganisationsService', () => {
     await expect(service.createOrganisation(form, user)).rejects.toBeInstanceOf(OrganisationRejectedError)
   })
 
+  it('lists organisations, treating a blank term as no filter', async () => {
+    const result = { content: [], page: { size: 20, number: 0, totalElements: 0, totalPages: 0 } }
+    client.listOrganisations.mockResolvedValue(result)
+
+    expect(await service.listOrganisations('', 0, 20, user)).toBe(result)
+    expect(client.listOrganisations).toHaveBeenCalledWith(undefined, 0, 20, 'user1')
+  })
+
   it('rethrows other errors', async () => {
     const error = { responseStatus: 500 }
     client.createOrganisation.mockRejectedValue(error)

@@ -11,6 +11,14 @@
   </div>
 
   <div class="card-group" data-qa="homepage-cards">
+    {% if user | hasPermission(PERMISSION.VIEW) %}
+      {{ card({
+        heading: "View organisations",
+        description: "Search and browse all organisations.",
+        href: "/organisations",
+        dataQa: "list-organisations-card"
+      }) }}
+    {% endif %}
     {% if user | hasPermission(PERMISSION.MANAGE) %}
       {{ card({
         heading: "Add an organisation",
