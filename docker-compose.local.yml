@@ -27,6 +27,17 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
 
+  # Fake SQS queue for audit messages; mainQueue is created from the mounted config
+  elasticmq:
+    image: softwaremill/elasticmq-native
+    networks:
+      - hmpps
+    container_name: elasticmq-organisations
+    ports:
+      - '9324:9324'
+    volumes:
+      - ./local-elasticmq/elasticmq.conf:/opt/elasticmq.conf
+
   app:
     build:
       context: .
@@ -39,6 +50,7 @@ services:
       - api
       - sign-in-stub
       - redis
+      - elasticmq
     networks:
       - hmpps
     ports:
@@ -47,6 +59,12 @@ services:
       - PRODUCT_ID=UNASSIGNED
       - REDIS_ENABLED=true
       - REDIS_HOST=redis
+      - AUDIT_ENABLED=true
+      - AUDIT_SQS_QUEUE_URL=http://elasticmq:9324/000000000000/mainQueue
+      - AUDIT_SERVICE_NAME=hmpps-organisations-ui
+      - AUDIT_SQS_REGION=eu-west-2
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
       # Not reachable locally, so the DPS header/footer fall back to the library's static versions
       - COMPONENT_API_URL=http://localhost:8082
       - DPS_HOME_PAGE_URL=http://localhost:3001

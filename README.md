@@ -69,6 +69,30 @@ These credentials are configured using the following env variables:
 - CLIENT_CREDS_CLIENT_ID
 - CLIENT_CREDS_CLIENT_SECRET
 
+### Getting the client credentials from Cloud Platform
+
+You need access to the dev namespace on Cloud Platform (a GitHub account in the `ministryofjustice` org, in a team
+with access) and `kubectl` and `jq` installed.
+
+1. Sign in at https://login.cloud-platform.service.justice.gov.uk with GitHub, download the kubeconfig and save it as
+   `~/.kube/config`, then select the cluster:
+   `kubectl config use-context live.cloud-platform.service.justice.gov.uk`
+2. Check access: `kubectl -n <your-dev-namespace> get secrets` (`Forbidden` means you need adding to a team with access).
+3. Print the credentials in `.env` format. The secret names come from `namespace_secrets` in
+   `helm_deploy/hmpps-organisations-ui/values.yaml`:
+
+```bash
+for s in hmpps-organisations-ui-auth-code hmpps-organisations-ui-client-creds; do
+  kubectl -n <your-dev-namespace> get secret "$s" -o json \
+    | jq -r '.data | to_entries[] | "\(.key)=\(.value | @base64d)"'
+done
+```
+
+4. Put the four values (`AUTH_CODE_CLIENT_ID`, `AUTH_CODE_CLIENT_SECRET`, `CLIENT_CREDS_CLIENT_ID`,
+   `CLIENT_CREDS_CLIENT_SECRET`) in your git-ignored `.env`, set `SESSION_SECRET` to any random text, and restart the
+   app. Do not use the dummy `clientid`/`clientsecret` values from `feature.env` against the real DPS dev sign-in, and
+   never commit or share the real values.
+
 ### Dependencies
 
 ### HMPPS Auth
@@ -126,6 +150,41 @@ Both `docker-compose.yml` and `docker-compose.local.yml` start a local `redis` c
 containerised app uses it (`REDIS_ENABLED=true`, `REDIS_HOST=redis`).
 To run the app on your host against that container, start it with `docker compose up redis -d` and set
 `REDIS_ENABLED=true` and `REDIS_HOST=localhost`. Without `REDIS_ENABLED=true`, sessions and tokens are held in memory.
+
+### Audit queue
+
+The UI sends one audit message each time a logged-in user opens a page (form submissions don't send one). Auditing is
+off unless `AUDIT_ENABLED=true`. The real audit queue can't be reached from a laptop, so both compose files start
+[ElasticMQ](https://github.com/softwaremill/elasticmq), a fake SQS queue on port 9324, with `mainQueue` created from
+`local-elasticmq/elasticmq.conf`. The containerised app is already pointed at it.
+
+To run the app on your host against it, start the containers and add these to `.env`:
+
+```bash
+docker compose up redis elasticmq -d
+```
+
+```
+AUDIT_ENABLED=true
+AUDIT_SQS_QUEUE_URL=http://localhost:9324/000000000000/mainQueue
+AUDIT_SERVICE_NAME=hmpps-organisations-ui
+AUDIT_SQS_REGION=eu-west-2
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+```
+
+The `AWS_*` keys are dummies: the AWS library won't send without them and ElasticMQ accepts anything. Restart the app
+after changing `.env`. A successful send logs `HMPPS Audit SQS message sent (<id>)`. To read the messages:
+
+```bash
+export AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=eu-west-2
+aws --endpoint-url http://localhost:9324 sqs receive-message \
+  --queue-url http://localhost:9324/000000000000/mainQueue \
+  --max-number-of-messages 10 --visibility-timeout 0 --query 'Messages[].Body' --output text
+```
+
+Each message has `who` (username), `what` (`PAGE_VIEW_<page>`), `when`, `service` and `correlationId`. ElasticMQ keeps
+messages in memory only. If `Error sending HMPPS Audit SQS message` appears in the log, the queue isn't running.
 
 ## Developing against the template project
 
