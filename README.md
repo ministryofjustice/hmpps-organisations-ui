@@ -122,7 +122,10 @@ npm run int-test
 
 When deployed to an environment with multiple pods we run applications with an instance of REDIS/Elasticache to provide
 a distributed cache of sessions.
-The template app is, by default, configured not to use REDIS when running locally.
+Both `docker-compose.yml` and `docker-compose.local.yml` start a local `redis` container (port 6379) and the
+containerised app uses it (`REDIS_ENABLED=true`, `REDIS_HOST=redis`).
+To run the app on your host against that container, start it with `docker compose up redis -d` and set
+`REDIS_ENABLED=true` and `REDIS_HOST=localhost`. Without `REDIS_ENABLED=true`, sessions and tokens are held in memory.
 
 ## Developing against the template project
 

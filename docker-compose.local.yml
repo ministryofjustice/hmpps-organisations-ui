@@ -17,6 +17,16 @@ services:
     volumes:
       - ./local-stubs:/home/wiremock
 
+  redis:
+    image: 'redis:8.10'
+    networks:
+      - hmpps
+    container_name: redis-organisations
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
   app:
     build:
       context: .
@@ -28,14 +38,15 @@ services:
     depends_on:
       - api
       - sign-in-stub
+      - redis
     networks:
       - hmpps
     ports:
       - "3000:3000"
     environment:
       - PRODUCT_ID=UNASSIGNED
-      - REDIS_ENABLED=false
-      - REDIS_HOST=localhost
+      - REDIS_ENABLED=true
+      - REDIS_HOST=redis
       # Not reachable locally, so the DPS header/footer fall back to the library's static versions
       - COMPONENT_API_URL=http://localhost:8082
       - DPS_HOME_PAGE_URL=http://localhost:3001

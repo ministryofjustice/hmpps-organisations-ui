@@ -26,6 +26,16 @@ services:
       - HMPPS_AUTH_URL=http://hmpps-auth:8080/auth
       - EXAMPLE_API_URL=http://localhost:8080
 
+  redis:
+    image: 'redis:8.10'
+    networks:
+      - hmpps
+    container_name: redis-organisations
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
   app:
     build:
       context: .
@@ -41,8 +51,8 @@ services:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/3000"]
     environment:
       - PRODUCT_ID=UNASSIGNED
-      - REDIS_ENABLED=false
-      - REDIS_HOST=localhost
+      - REDIS_ENABLED=true
+      - REDIS_HOST=redis
       - HMPPS_AUTH_EXTERNAL_URL=http://localhost:9090/auth
       - HMPPS_AUTH_URL=http://hmpps-auth:8080/auth
       # These will need to match new creds in the seed auth service auth
